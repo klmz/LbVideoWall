@@ -5,6 +5,7 @@ var Viewer = function(){
 	this.camera = null;
 	this.controls = null;
 	this.renderer = null;
+	this.materials = {};
 	EventBus.subscribe("bluePoint", this, this.handleBluePoint);
 	EventBus.subscribe("model", this, this.handleModel);
 }
@@ -15,12 +16,23 @@ Viewer.prototype.handleBluePoint = function(action){
 	if(action ===  "add"){
 		console.log("adding bluepoint");
 		this.scene.add(this.bluePoint);
+		this.bluePointHelper = new THREE.PointLightHelper(this.bluePoint, 3);
+		this.scene.add(this.bluePointHelper);
 	}else{
 		console.log("removing bluepoint");
 		this.scene.remove(this.bluePoint);
+		this.scene.remove(this.bluePointHelper);
 	}
+	this.updateMaterials();
 };
 
+Viewer.prototype.updateMaterials = function() {
+	for( var prop in this.materials){
+		if(this.materials.hasOwnProperty(prop)){
+			this.materials[prop].needsUpdate = true;
+		}
+	}
+};
 Viewer.prototype.handleModel = function(model){
 	console.log("This model: ", model);
 };
@@ -89,42 +101,42 @@ Viewer.prototype.addTestSceneElements = function() {
         var cube = new THREE.CubeGeometry( 200, 1, 200);
      
         // create different materials
-        var floorMat = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/wood-floor.jpg') } );
-        var wallMat = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/bricks.jpg') } );
-        var redMat = new THREE.MeshPhongMaterial( { color: 0xff3300, specular: 0x555555, shininess: 30 } );
-        var purpleMat = new THREE.MeshPhongMaterial( { color: 0x6F6CC5, specular: 0x555555, shininess: 30 } );
+        this.materials['floorMat'] = new THREE.MeshPhongMaterial( { needsUpdate : true, map: THREE.ImageUtils.loadTexture('images/wood-floor.jpg') } );
+        this.materials['wallMat'] = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/bricks.jpg') } );
+        this.materials['redMat'] = new THREE.MeshPhongMaterial( { color: 0xff3300, specular: 0x555555, shininess: 30 } );
+        this.materials['purpleMat'] = new THREE.MeshPhongMaterial( { color: 0x6F6CC5, specular: 0x555555, shininess: 30 } );
      
         // Floor
-        var floor = new THREE.Mesh(cube, floorMat );
+        var floor = new THREE.Mesh(cube, this.materials['floorMat'] );
         this.scene.add( floor );
      
         // Back wall
-        var backWall = new THREE.Mesh(cube, wallMat );
+        var backWall = new THREE.Mesh(cube, this.materials['wallMat'] );
         backWall.rotation.x = Math.PI/180 * 90;
         backWall.position.set(0,100,-100);
         this.scene.add( backWall );
      
         // Left wall
-        var leftWall = new THREE.Mesh(cube, wallMat );
+        var leftWall = new THREE.Mesh(cube, this.materials['wallMat'] );
         leftWall.rotation.x = Math.PI/180 * 90;
         leftWall.rotation.z = Math.PI/180 * 90;
         leftWall.position.set(-100,100,0);
         this.scene.add( leftWall );
      
         // Right wall
-        var rightWall = new THREE.Mesh(cube, wallMat );
+        var rightWall = new THREE.Mesh(cube, this.materials['wallMat'] );
         rightWall.rotation.x = Math.PI/180 * 90;
         rightWall.rotation.z = Math.PI/180 * 90;
         rightWall.position.set(100,100,0);
         this.scene.add( rightWall );
      
         // Sphere
-        var sphere = new THREE.Mesh(new THREE.SphereGeometry(20, 70, 20), redMat);
+        var sphere = new THREE.Mesh(new THREE.SphereGeometry(20, 70, 20), this.materials['redMat']);
         sphere.position.set(-25, 100, -20);
         this.scene.add(sphere);
      
         // Knot thingy
-        var knot = new THREE.Mesh(new THREE.TorusKnotGeometry( 40, 3, 100, 16 ), purpleMat);
+        var knot = new THREE.Mesh(new THREE.TorusKnotGeometry( 40, 3, 100, 16 ), this.materials['purpleMat']);
         knot.position.set(0, 60, 30);
         this.scene.add(knot);
 

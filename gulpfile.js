@@ -62,5 +62,5 @@ gulp.task('js', function () {
 gulp.task('default', ['browser-sync'], function () {
     // add browserSync.reload to the tasks array to make
     // all browsers reload after tasks are complete.
-	gulp.watch(["./*"], ['js', browserSync.reload]);
+	gulp.watch(["*.js" , "*/*.js", "*/*/*.js", "js/util/*.js","js/models/*.js"], ['js', browserSync.reload]);
 });

@@ -1,11 +1,15 @@
 console.log("Initializing");
-var Controller = require("./js/Controller/Controller.js");
+var a = require("./js/util/EventBus");
+EventBus = new a();
+console.log(EventBus);
+var Controller = require("./js/Controller/Controller");
 
 // init controller
-var controller = new Controller();
-console.log(controller);
+// var controller = new Controller();
+// console.log(controller);
 
-// var Viewer = require("./js/Viewer/Viewer.js");
-
+var Viewer = require("./js/Viewer/Viewer");
+viewer = new Viewer();
+viewer.init()
 //init viewer
 console.log("Done");

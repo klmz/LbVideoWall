@@ -8,8 +8,7 @@
   },
   "main": "./",
   "keywords": [],
-  "bin": {
-  },
+  "bin": {},
   "dependencies": {
     "browser-sync": "^2.1.4",
     "gulp": "^3.8.11",

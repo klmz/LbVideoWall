@@ -15,4 +15,36 @@
         padding:0;
     }
 
-  
+.pane{
+    float:left;
+}
+/*      MENUPANE        */
+.menu{
+    width:33%;
+}
+ul{
+    list-style-type: none;
+    width:200px;
+    position: relative;
+    display: block;
+    margin: 0 auto;
+}
+.sceneList li{
+    display:block;
+    width:100%;
+    margin:10px 0;
+    border:1px solid #999;
+    border-radius: 5px;
+    padding:10px;
+    text-align: center;
+    font-size:140%;
+}
+
+li{
+    cursor: pointer;
+}
+
+/*      DetailPane        */
+.detail{
+    width:66%;
+}

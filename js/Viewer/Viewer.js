@@ -1,164 +1,199 @@
-var Viewer = function(){
-	this.W = window.innerWidth;
-	this.H = window.innerHeight;
-	this.scene = null;
-	this.camera = null;
-	this.controls = null;
-	this.renderer = null;
-	this.materials = {};
-	EventBus.subscribe("bluePoint", this, this.handleBluePoint);
-	EventBus.subscribe("model", this, this.handleModel);
+var Viewer = function() {
+    this.W = window.innerWidth;
+    this.H = window.innerHeight;
+    this.stage = null;
+    this.camera = null;
+    this.controls = null;
+    this.transformControls = null;
+    this.renderer = null;
+    this.loadedScene = null;
+    this.materials = {};
+    this.scenes = [];
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+
+    EventBus.subscribe("SceneLoaded", this, this.sceneLoaded);
+    EventBus.subscribe("RequestScene", this, this.requestScene);
+    EventBus.subscribe("RemoveScene", this, this.removeScene);
+    EventBus.subscribe("EnableEditMode", this, this.enableEditMode);
+    EventBus.subscribe("DisableEditMode", this, this.disableEditMode);
 }
 
 Viewer.prototype.constructor = Viewer;
 
-Viewer.prototype.handleBluePoint = function(action){
-	if(action ===  "add"){
-		console.log("adding bluepoint");
-		this.scene.add(this.bluePoint);
-		this.bluePointHelper = new THREE.PointLightHelper(this.bluePoint, 3);
-		this.scene.add(this.bluePointHelper);
-	}else{
-		console.log("removing bluepoint");
-		this.scene.remove(this.bluePoint);
-		this.scene.remove(this.bluePointHelper);
-	}
-	this.updateMaterials();
-};
-
-Viewer.prototype.updateMaterials = function() {
-	for( var prop in this.materials){
-		if(this.materials.hasOwnProperty(prop)){
-			this.materials[prop].needsUpdate = true;
-		}
-	}
-};
-Viewer.prototype.handleModel = function(model){
-	console.log("This model: ", model);
-};
 
 
 Viewer.prototype.init = function() {
-	this.scene =new THREE.Scene();
+    this.stage = new THREE.Scene();
 
-	 // Add the camera
-    this.camera = new THREE.PerspectiveCamera( 70, this.W / this.H, 1, 1000);
+    // Add the camera
+    this.camera = new THREE.PerspectiveCamera(70, this.W / this.H, 1, 1000);
     this.camera.position.set(0, 100, 250);
- 
-    // Add test elements
-    this.addTestSceneElements();
- 
+
     // Create the WebGL Renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
     this.renderer.setSize(this.W, this.H);
- 
+
     // Append the renderer to the body
-    document.body.appendChild(this.renderer.domElement );
- 
+    document.body.appendChild(this.renderer.domElement);
+
     // Add a resize event listener
-    window.addEventListener( 'resize', this.onWindowResize, false );
- 
+    window.addEventListener('resize', this.onWindowResize, false);
+
     // Add the orbit controls
     this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target = new THREE.Vector3(0, 100, 0);
+
+    //Setup transform controls
+    this.transformControls = new THREE.TransformControls(this.camera, this.renderer.domElement);
+    // this.transformControls.addEventListener('change', this.render);
+    this.stage.add(this.transformControls);
 
     //Start animation loop
     this.animate();
 };
 
-Viewer.prototype.addDefaultLights = function() {
-	var dirLight = new THREE.DirectionalLight(0xffffff, 1);
-        dirLight.position.set(100, 100, 50);
-        // this.scene.add(dirLight);
+Viewer.prototype.requestScene = function(sceneName) {
+    //TODO check if sceneName exits
 
-        var ambLight = new THREE.AmbientLight(0x404040);
-        // this.scene.add(ambLight);
-       	this.bluePoint = new THREE.PointLight(0x0033ff, 3, 150);
-        this.bluePoint.position.set( 70, 50, 70 );
-        // this.scene.add(new THREE.PointLightHelper(bluePoint, 3));
-         
-        var greenPoint = new THREE.PointLight(0x33ff00, 1, 150);
-        greenPoint.position.set( -70, 5, 70 );
-        this.scene.add(greenPoint);
-        this.scene.add(new THREE.PointLightHelper(greenPoint, 3));
-
-        spotLight = new THREE.SpotLight(0xffffff, 1, 200, 20, 10);
-        spotLight.position.set( 0, 150, 0 );
-         
-        var spotTarget = new THREE.Object3D();
-        spotTarget.position.set(0, 0, 0);
-        spotLight.target = spotTarget;
-         
-        this.scene.add(spotLight);
-        this.scene.add(new THREE.PointLightHelper(spotLight, 1));
-
-        var hemLight = new THREE.HemisphereLight(0xffe5bb, 0xFFBF00, .1);
-        // this.scene.add(hemLight);
-};
-
-Viewer.prototype.addTestSceneElements = function() {
-        // Create a cube used to build the floor and walls
-        var cube = new THREE.CubeGeometry( 200, 1, 200);
-     
-        // create different materials
-        this.materials['floorMat'] = new THREE.MeshPhongMaterial( { needsUpdate : true, map: THREE.ImageUtils.loadTexture('images/wood-floor.jpg') } );
-        this.materials['wallMat'] = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/bricks.jpg') } );
-        this.materials['redMat'] = new THREE.MeshPhongMaterial( { color: 0xff3300, specular: 0x555555, shininess: 30 } );
-        this.materials['purpleMat'] = new THREE.MeshPhongMaterial( { color: 0x6F6CC5, specular: 0x555555, shininess: 30 } );
-     
-        // Floor
-        var floor = new THREE.Mesh(cube, this.materials['floorMat'] );
-        this.scene.add( floor );
-     
-        // Back wall
-        var backWall = new THREE.Mesh(cube, this.materials['wallMat'] );
-        backWall.rotation.x = Math.PI/180 * 90;
-        backWall.position.set(0,100,-100);
-        this.scene.add( backWall );
-     
-        // Left wall
-        var leftWall = new THREE.Mesh(cube, this.materials['wallMat'] );
-        leftWall.rotation.x = Math.PI/180 * 90;
-        leftWall.rotation.z = Math.PI/180 * 90;
-        leftWall.position.set(-100,100,0);
-        this.scene.add( leftWall );
-     
-        // Right wall
-        var rightWall = new THREE.Mesh(cube, this.materials['wallMat'] );
-        rightWall.rotation.x = Math.PI/180 * 90;
-        rightWall.rotation.z = Math.PI/180 * 90;
-        rightWall.position.set(100,100,0);
-        this.scene.add( rightWall );
-     
-        // Sphere
-        var sphere = new THREE.Mesh(new THREE.SphereGeometry(20, 70, 20), this.materials['redMat']);
-        sphere.position.set(-25, 100, -20);
-        this.scene.add(sphere);
-     
-        // Knot thingy
-        var knot = new THREE.Mesh(new THREE.TorusKnotGeometry( 40, 3, 100, 16 ), this.materials['purpleMat']);
-        knot.position.set(0, 60, 30);
-        this.scene.add(knot);
-
-         // Add lights
-    	this.addDefaultLights();
-
-
+    //Check if requested scene is current scene
+    //Remove old scene if there is one.
+    if (this.loadedScene != null) {
+        if (this.loadedScene.getId() === sceneName) {
+            return;
+        }
+        this.loadedScene.animateOut(function(v) {
+            return function() {
+                v.loadScene(sceneName, function() {
+                    v.loadedScene.animateIn();
+                });
+            };
+        }(this));
+    } else {
+        this.loadScene(sceneName);
+    }
 }
 
-Viewer.prototype.onWindowResize = function(first_argument) {
-        this.camera.aspect = this.W/this.H;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize( this.W, this.H );
+Viewer.prototype.loadScene = function(sceneName, callback) {
+    //Set the current scene
+    this.loadedScene = this.scenes[sceneName];
+
+    //Build the scene
+    this.loadedScene.buildScene(this.stage);
+
+    //Let everything now the scene is loaded
+    EventBus.emit("SceneLoaded", [sceneName]);
+
+    //Fire callback if defined
+    if (callback) {
+        callback();
+    }
+};
+
+Viewer.prototype.removeScene = function() {
+    //Remove old scene if there is one.
+    if (this.loadedScene != null) {
+        this.loadedScene.animateOut(function(v) {
+            return function() {};
+        }(this));
+    }
+}
+
+Viewer.prototype.enableEditMode = function(name) {
+    //Make objects selectable
+    this.mouseUpFunc = function(viewer) {
+        return function(e) {
+            viewer.onMouseUp.call(viewer, e);
+        };
+    }(this);
+
+    this.mouseDownFunc = function(viewer) {
+        return function(e) {
+            viewer.onMouseDown.call(viewer, e);
+        };
+    }(this);
+
+    document.addEventListener("mouseup", this.mouseUpFunc, false);
+    document.addEventListener("mousedown", this.mouseDownFunc, false);
+};
+
+Viewer.prototype.disableEditMode = function(name) {
+    document.removeEventListener("mouseup", this.mouseUpFunc);
+    document.removeEventListener("mousedown", this.mouseDownFunc);
+};
+
+Viewer.prototype.onMouseUp = function(e) {
+    var pos = {
+    'x': (event.clientX / this.W) * 2 - 1,
+    'y': -(event.clientY / this.H) * 2 + 1
+};
+var intersects = this.getIntersects(pos, this.stage.children);
+if (intersects.length > 0) {
+    var object = intersects[0].object;
+    this.select(object);
+} else {
+    this.select(null);
+}
+
+};
+Viewer.prototype.onMouseDown = function(e) {};
+Viewer.prototype.select = function(object) {
+    if (this.selectedObject) {
+        this.transformControls.detach(this.selectedObject);
+    }
+
+    if (object === null) {
+        return;
+    }
+
+    this.selectedObject = object;
+    this.transformControls.attach(this.selectedObject);
+}
+Viewer.prototype.getIntersects = function(point, object) {
+    this.mouse.set(point.x, point.y);
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    if (object instanceof Array) {
+        return this.raycaster.intersectObjects(object);
+    }
+    return this.raycaster.intersectObject(object);
+
+};
+
+Viewer.prototype.registerScene = function(scene) {
+    //Set parent of scene to this viewer
+    scene.viewer = this;
+
+    //Register it
+    this.scenes[scene.getId()] = scene;
+};
+
+Viewer.prototype.unRegisterScene = function(scene) {
+    this.scenes[scene.getId()].viewer = null;
+    delete this.scenes[scene.getId()];
+};
+
+Viewer.prototype.sceneLoaded = function(sceneName) {
+    Logger.debug("Scene loaded: ", sceneName);
+};
+
+Viewer.prototype.onWindowResize = function() {
+    this.camera.aspect = this.W / this.H;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(this.W, this.H);
 };
 
 Viewer.prototype.animate = function() {
-	this.renderer.render(this.scene, this.camera );
-    requestAnimationFrame(function(v){
-    	return function(){
-		    		v.animate()
-		    	};
-		    }(this));
+    this.renderer.render(this.stage, this.camera);
+    requestAnimationFrame(function(v) {
+        return function() {
+            v.animate()
+        };
+    }(this));
     this.controls.update();
 };
+
 module.exports = Viewer;
+

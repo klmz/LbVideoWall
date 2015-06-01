@@ -1,5 +1,6 @@
 var Scene = require("./Scene");
 var ViewBuilder = require("../js/util/ViewBuilder");
+var Viewer = require("../js/Viewer/Viewer");
 
 var OMGScene = function() {
     Scene.call(this, "OMG You Guys!");
@@ -20,7 +21,7 @@ OMGScene.prototype.getId = function() {
     This method is called when the elements used in this scenes have to be added to the stage
 */
 OMGScene.prototype.buildScene = function(stage) {
-
+    this.viewer.setRenderMode(Viewer.RenderMode.THREEJS);
     // Create a cube used to build the floor and walls
     var cube = new THREE.CubeGeometry(200, 1, 200);
 

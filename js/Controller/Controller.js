@@ -21,7 +21,7 @@ var Controller = function() {
         };
     }(this));
     EventBus.subscribe("PositionChanged", this, function(scene, object, position) {
-        console.log(scene, object, position)
+        // console.log(scene, object, position)
     });
 }
 

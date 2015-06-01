@@ -14,6 +14,9 @@
         margin:0;
         padding:0;
     }
+.twoD{
+    display: none;
+}
 
 .pane{
     float:left;
@@ -47,4 +50,8 @@ li{
 /*      DetailPane        */
 .detail{
     width:66%;
+}
+
+button{
+    margin:0 10px;
 }

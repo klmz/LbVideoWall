@@ -35,7 +35,7 @@ EventBus.prototype.subscribe = function(eventName, context, callback) {
     storageInitiated - A boolean that decides if the event is to be emitted on localstorage
 */
 EventBus.prototype.emit = function(eventName, arguments, storageInitiated) {
-    console.log("emit", eventName, arguments);
+    // console.log("emit", eventName, arguments);
     if (storageInitiated === "undefined") {
         storageInitiated = false;
     }
@@ -81,7 +81,7 @@ EventBus.prototype.serializeArray = function(a) {
         } else if (el instanceof Object && typeof el.toJson === "function") { //it is an object that has a toJson function
             s.push(el.toJson());
         } else {
-            Logger.warn("This object is not serializable, it has no toJson function", el);
+            // Logger.warn("This object is not serializable, it has no toJson function", el);
             s.push(el);
         }
     }

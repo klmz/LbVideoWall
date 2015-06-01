@@ -1,5 +1,6 @@
 var Scene = require("./Scene");
 var ViewBuilder = require("../js/util/ViewBuilder");
+var Viewer = require("../js/Viewer/Viewer");
 
 var HarvardVariationsScene = function() {
     Scene.call(this, "Harvard Variations");
@@ -17,19 +18,20 @@ HarvardVariationsScene.prototype = Object.create(Scene.prototype);
 HarvardVariationsScene.prototype.constructor = HarvardVariationsScene;
 
 /*
-	Returns the ID of this scenes. This should return a String, and should be overwritten by the scene implementation	
+    Returns the ID of this scenes. This should return a String, and should be overwritten by the scene implementation   
 */
 HarvardVariationsScene.prototype.getId = function() {
     return "HarvardVariationsScene";
 };
 
 /*
-	This method is called when the elements used in this scenes have to be added to the stage
+    This method is called when the elements used in this scenes have to be added to the stage
 */
 HarvardVariationsScene.prototype.buildScene = function(stage) {
+
+    this.viewer.setRenderMode(Viewer.RenderMode.THREEJS);
     // Create a cube used to build the floor and walls
     var cube = new THREE.CubeGeometry(200, 1, 200);
-
     // create different materials
     this.materials['floorMat'] = new THREE.MeshPhongMaterial({
         map: THREE.ImageUtils.loadTexture('images/wood-floor.jpg')
@@ -89,21 +91,21 @@ HarvardVariationsScene.prototype.addDefaultLights = function(stage) {
 };
 
 /*
-	This method is called when such changes are made that elements in the scene may need an WebGl update
+    This method is called when such changes are made that elements in the scene may need an WebGl update
 */
 HarvardVariationsScene.prototype.update = function() {
     this.updateMaterials();
 }
 
 /*
-	The method animateIn should define the animations that have to be played when a scene is transitioned in
+    The method animateIn should define the animations that have to be played when a scene is transitioned in
 */
 HarvardVariationsScene.prototype.animateIn = function(callback) {
     Logger.warn("animateIn has not been implemented", this);
 };
 
 /*
-	The method animateOut should define the animations that have to be played when a scene is transitioned out
+    The method animateOut should define the animations that have to be played when a scene is transitioned out
 */
 HarvardVariationsScene.prototype.animateOut = function(callback) {
     Logger.debug("Animating Out, impl");

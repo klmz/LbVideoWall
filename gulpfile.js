@@ -23,7 +23,7 @@ var getBundleName = function() {
 // start server
 gulp.task('browser-sync', function() {
     browserSync({
-        proxy: "localhost:4000"
+        proxy: "localhost:3000"
     });
 });
 

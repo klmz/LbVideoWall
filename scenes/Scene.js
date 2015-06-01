@@ -33,21 +33,21 @@ var Scene = function(name) {
 Scene.prototype.constructor = Scene;
 
 /*
-	Returns the ID of this scenes. This should return a String, and should be overwritten by the scene implementation	
+    Returns the ID of this scenes. This should return a String, and should be overwritten by the scene implementation   
 */
 Scene.prototype.getId = function() {
     throw new Error("getID has not been implemented", this);
 };
 
 /*
-	This method is called when the elements used in this scenes have to be added to the stage
+    This method is called when the elements used in this scenes have to be added to the stage
 */
 Scene.prototype.buildScene = function() {
     throw new Error("addElements has not been implemented", this);
 };
 
 /*
-	This method is called when the elements used in this scenes have to be removed from the stage
+    This method is called when the elements used in this scenes have to be removed from the stage
 */
 Scene.prototype.breakDown = function() {
     var stage = this.viewer.stage;
@@ -68,28 +68,33 @@ Scene.prototype.breakDown = function() {
 };
 
 /*
-	This method returns a elementNode that contians the editor view for this scene.
+    This method returns a elementNode that contians the editor view for this scene.
 */
 Scene.prototype.buildEditorView = function() {
     throw new Error("buildEditorView has not been implemented", this);
 }
 
 /*
-	This method is called when such changes are made that elements in the scene may need an WebGl update
+    This method is called when such changes are made that elements in the scene may need an WebGl update
 */
 Scene.prototype.update = function() {
     throw new Error("update has not been implemented", this);
 }
 
 /*
-	The method animateIn should define the animations that have to be played when a scene is transitioned in
+    This method is called by the render loop, this allows the scene to update on every frame, this method is optional
+*/
+Scene.prototype.render = function() {};
+
+/*
+    The method animateIn should define the animations that have to be played when a scene is transitioned in
 */
 Scene.prototype.animateIn = function() {
     throw new Error("animateIn has not been implemented", this);
 };
 
 /*
-	The method animateOut should define the animations that have to be played when a scene is transitioned out
+    The method animateOut should define the animations that have to be played when a scene is transitioned out
 */
 Scene.prototype.animateOut = function(callback) {
     Logger.debug("Animating out");
@@ -100,13 +105,13 @@ Scene.prototype.animateOut = function(callback) {
 
 /*
 
-	Send an event to request this scene
+    Send an event to request this scene
 */
 Scene.prototype.request = function() {
     EventBus.emit("RequestScene", [this.getId()]);
 };
 /*
-	Update the materials at WebGl level
+    Update the materials at WebGl level
 */
 Scene.prototype.updateMaterials = function() {
     for (var prop in this.materials) {

@@ -1,3 +1,4 @@
+
 var Viewer = function() {
     this.W = window.innerWidth;
     this.H = window.innerHeight;
@@ -7,17 +8,24 @@ var Viewer = function() {
     this.transformControls = null;
     this.renderer = null;
     this.loadedScene = null;
+    this.canvas = null;
+    this.context = null;
     this.materials = {};
     this.scenes = [];
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
-
+    this.renderMode = Viewer.RenderMode.THREEJS;
+    this.drawables = [];
     EventBus.subscribe("SceneLoaded", this, this.sceneLoaded);
     EventBus.subscribe("RequestScene", this, this.requestScene);
     EventBus.subscribe("RemoveScene", this, this.removeScene);
     EventBus.subscribe("EnableEditMode", this, this.enableEditMode);
     EventBus.subscribe("DisableEditMode", this, this.disableEditMode);
 }
+Viewer.RenderMode = {
+    'THREEJS': 0,
+    'CANVAS': 1
+};
 
 Viewer.prototype.constructor = Viewer;
 
@@ -29,15 +37,25 @@ Viewer.prototype.init = function() {
     // Add the camera
     this.camera = new THREE.PerspectiveCamera(70, this.W / this.H, 1, 1000);
     this.camera.position.set(0, 100, 250);
-
+    this.camera.rotation.set(0, 0, 0);
+    console.log(this.camera.fov);
     // Create the WebGL Renderer
     this.renderer = new THREE.WebGLRenderer({
-        antialias: true
+        antialias: true,
     });
+    // this.renderer.setClearColor(0xffffff, 1);
     this.renderer.setSize(this.W, this.H);
 
     // Append the renderer to the body
-    document.body.appendChild(this.renderer.domElement);
+    document.body.appendChild(this.renderer.domElement); //3d
+
+    //Add 2d rendereree
+    this.canvas = document.createElement("canvas");
+    this.canvas.classList.add("twoD");
+    this.canvas.width = this.W;
+    this.canvas.height = this.H;
+    this.context = this.canvas.getContext("2d");
+    document.body.appendChild(this.canvas);
 
     // Add a resize event listener
     window.addEventListener('resize', this.onWindowResize, false);
@@ -126,16 +144,16 @@ Viewer.prototype.disableEditMode = function(name) {
 
 Viewer.prototype.onMouseUp = function(e) {
     var pos = {
-    'x': (event.clientX / this.W) * 2 - 1,
-    'y': -(event.clientY / this.H) * 2 + 1
-};
-var intersects = this.getIntersects(pos, this.stage.children);
-if (intersects.length > 0) {
-    var object = intersects[0].object;
-    this.select(object);
-} else {
-    this.select(null);
-}
+        'x': (event.clientX / this.W) * 2 - 1,
+        'y': -(event.clientY / this.H) * 2 + 1
+    };
+    var intersects = this.getIntersects(pos, this.stage.children);
+    if (intersects.length > 0) {
+        var object = intersects[0].object;
+        this.select(object);
+    } else {
+        this.select(null);
+    }
 
 };
 Viewer.prototype.onMouseDown = function(e) {};
@@ -185,14 +203,48 @@ Viewer.prototype.onWindowResize = function() {
     this.renderer.setSize(this.W, this.H);
 };
 
+Viewer.prototype.setRenderMode = function(mode) {
+    if (mode === this.renderMode) {
+        return;
+    }
+    this.renderMode = mode;
+
+    switch (this.renderMode) {
+        case Viewer.RenderMode.THREEJS:
+            this.renderer.domElement.style.display = "block";
+            this.canvas.style.display = "none";
+            break;
+        case Viewer.RenderMode.CANVAS:
+            this.renderer.domElement.style.display = "none";
+            this.canvas.style.display = "block";
+            for (var i = 0; i < this.drawables.length; i++) {
+                var d = this.drawables[i];
+                d.draw();
+            }
+            break;
+    }
+};
+
 Viewer.prototype.animate = function() {
-    this.renderer.render(this.stage, this.camera);
+    if (this.loadedScene) {
+        this.loadedScene.render();
+    }
+
+    switch (this.renderMode) {
+        case Viewer.RenderMode.THREEJS:
+            this.renderer.render(this.stage, this.camera);
+            this.controls.update();
+            break;
+        case Viewer.RenderMode.CANVAS:
+            console.log('canvas');
+            break;
+    }
     requestAnimationFrame(function(v) {
         return function() {
             v.animate()
         };
     }(this));
-    this.controls.update();
+
 };
 
 module.exports = Viewer;
